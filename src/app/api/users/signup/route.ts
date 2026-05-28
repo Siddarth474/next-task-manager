@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
-import { connectDB } from "@/lib/dbConfig";
+import { NextRequest, NextResponse } from "next/server";
+import { connectDB } from "@/config/dbConfig";
 import { User } from "@/models/userModel";
 
-export const POST = async (request) => {
+export const POST = async (request: NextRequest) => {
     try {
         await connectDB();
         const {username, email, password} = await request.json();
@@ -34,9 +34,8 @@ export const POST = async (request) => {
             success: true,
         }, {status: 201});
         
-    } catch (error) {
+    } catch (error: any) {
         console.error('Something went wrong while signup: ', error);
         return NextResponse.json({error: error.message, success: false}, {status: 500});
     }
 }
-

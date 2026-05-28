@@ -1,10 +1,10 @@
 import { getDataFromToken } from "@/helpers/getDataFromToken";
-import { connectDB } from "@/lib/dbConfig";
+import { connectDB } from "@/config/dbConfig";
 import { Task } from "@/models/taskModel";
 import { User } from "@/models/userModel";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export const POST = async (request) => {
+export const POST = async (request: NextRequest) => {
     try {
         await connectDB()
         const {title, description, status, dueDate} = await request.json();
@@ -24,9 +24,8 @@ export const POST = async (request) => {
                 success: false
             }, {status: 400});
         }
-        if(!userId) throw new ApiError(401, "Unauthorized: User not logged in");
     
-        const newTask = await Task.create({
+        const newTask = await Task.create({ 
             title,
             description,
             status,
@@ -40,7 +39,7 @@ export const POST = async (request) => {
             success: true
         }, {status: 201});
     
-    } catch (error) {
+    } catch (error: any) {
         console.log('Something went wrong during task! ', error);
         return NextResponse.json(
             {error: error.message}, 
@@ -49,7 +48,7 @@ export const POST = async (request) => {
     }
 }
 
-export const GET = async (request) => {
+export const GET = async (request: NextRequest) => {
     try {
         await connectDB();
 
@@ -69,7 +68,7 @@ export const GET = async (request) => {
             tasks,
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error fetching tasks:", error);
         return NextResponse.json(
             { error: error.message, success: false },

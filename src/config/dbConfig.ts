@@ -1,9 +1,8 @@
 import mongoose from "mongoose";
-import { DB_NAME } from "./dbName";
 
 export const connectDB = async () => {
     try {
-        await mongoose.connect(`${process.env.MONGODB_URL}/${DB_NAME}`);
+        await mongoose.connect(`${process.env.MONGODB_URL}`);
         const connection = mongoose.connection;
 
         connection.on('connected', () => {

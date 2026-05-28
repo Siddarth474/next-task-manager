@@ -1,9 +1,9 @@
-import { connectDB } from "@/lib/dbConfig";
+import { connectDB } from "@/config/dbConfig";
 import { Task } from "@/models/taskModel";
 import { getDataFromToken } from "@/helpers/getDataFromToken";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export const GET = async (request, { params }) => {
+export const GET = async (request: NextRequest, { params }: { params: Promise<{ taskId: string }> }) => {
     try {
         await connectDB();
         const userId = await getDataFromToken(request);
@@ -20,7 +20,7 @@ export const GET = async (request, { params }) => {
 
         return NextResponse.json({ success: true, task }, {status: 200});
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error fetching task:", error);
             return NextResponse.json(
             { error: error.message, success: false },
@@ -29,7 +29,7 @@ export const GET = async (request, { params }) => {
     }
 };
 
-export const PATCH = async (request, { params }) => {
+export const PATCH = async (request: NextRequest, { params }: { params: Promise<{ taskId: string }> }) => {
     try {
         await connectDB();
         const userId = await getDataFromToken(request);
@@ -55,7 +55,7 @@ export const PATCH = async (request, { params }) => {
             updatedTask,
         }, {status: 200});
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error updating task:", error);
         return NextResponse.json(
             { error: error.message, success: false },
@@ -64,7 +64,7 @@ export const PATCH = async (request, { params }) => {
     }
 };
 
-export const DELETE = async (request, { params }) => {
+export const DELETE = async (request: NextRequest, { params }: { params: Promise<{ taskId: string }> }) => {
   try {
     await connectDB();
     const userId = await getDataFromToken(request);
@@ -87,7 +87,7 @@ export const DELETE = async (request, { params }) => {
       success: true,
     });
     
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error deleting task:", error);
     return NextResponse.json(
       { error: error.message, success: false },

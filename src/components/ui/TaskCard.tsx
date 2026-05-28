@@ -1,24 +1,34 @@
 "use client" 
-import { TaskApi } from '@/context/TaskContext'
+import { TaskApi, Task } from '@/context/TaskContext'
 import { handleFailure, handleSuccess } from '@/lib/notification'
 import axios from 'axios'
 import { CalendarClockIcon, CheckCircle, Clock, Edit, Hammer, Trash } from 'lucide-react'
 import React, { useContext, useState } from 'react'
 import DeleteConfirmCard from './DeletePopCard'
 
-const TaskCard = ({taskInfo, setShowPopUp }) => {
+interface TaskCardProps {
+    taskInfo: Task;
+    setShowPopUp: React.Dispatch<React.SetStateAction<boolean>>;
+}
 
-    const {setTaskList, setTask, setEditId} = useContext(TaskApi);
+const TaskCard: React.FC<TaskCardProps> = ({ taskInfo, setShowPopUp }) => {
+    const context = useContext(TaskApi);
+
+    if (!context) {
+        throw new Error("TaskCard must be used within a TaskApiProvider");
+    }
+
+    const { setTaskList, setTask, setEditId } = context;
     const [showDeletePopup, setShowDeletePopup] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const statusIcons = {
+    const statusIcons: Record<string, React.JSX.Element> = {
         "pending" : <Hammer size={18} className='text-orange-600'/>,
         "in-progress" : <Clock size={18} className='text-yellow-600' />,
         "completed" : <CheckCircle size={18} className='text-green-600' />
     }
 
-    const cardsBackground = (status) => {
+    const cardsBackground = (status: string) => {
         switch (status) {
             case "pending":
                 return "bg-orange-50 border-orange-500"
@@ -31,7 +41,7 @@ const TaskCard = ({taskInfo, setShowPopUp }) => {
         }
     }
 
-    const indicatorColor = (status) => {
+    const indicatorColor = (status: string) => {
         switch (status) {
             case "pending":
                 return "bg-orange-500"
@@ -44,17 +54,18 @@ const TaskCard = ({taskInfo, setShowPopUp }) => {
         }
     }
 
-    const handleDeleteTask = async (taskId) => {
+    const handleDeleteTask = async (taskId: string | undefined) => {
+        if (!taskId) return;
         try {
             setLoading(true)
             const res = await axios.delete(`/api/tasks/${taskId}`);
             const {success, message} = res.data;
             if(success) {
-                setTaskList(prev => prev.filter(t => (t._id || t.id || t.tempId) !== taskId));
+                setTaskList(prev => prev.filter(t => t._id !== taskId));
                 handleSuccess(message);
                 setLoading(true);
             }
-        } catch (error) {
+        } catch (error: any) {
             setLoading(false);
             if(error.response) {
                 const data = error.response.data;
@@ -62,7 +73,7 @@ const TaskCard = ({taskInfo, setShowPopUp }) => {
             }
             else {
                 console.log('Error in issue delete', error.message);
-                handleFailure("Network error something went wrong" || error.message);
+                handleFailure("Network error something went wrong");
             }
         }
     };
@@ -95,7 +106,7 @@ const TaskCard = ({taskInfo, setShowPopUp }) => {
                         status: taskInfo.status
                     });
                     setShowPopUp(true);
-                    setEditId(taskInfo._id);
+                    setEditId(taskInfo._id || '');
                 }}
                 size={20} strokeWidth={2.3} className='hover:text-gray-600 cursor-pointer' />
                 <Trash onClick={() => setShowDeletePopup(true)}

@@ -5,11 +5,23 @@ import { Search, PlusCircle, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { handleFailure, handleSuccess } from '@/lib/notification';
 import axios from 'axios';
-import { TaskApi } from '@/context/TaskContext';
+import { TaskApi, Task } from '@/context/TaskContext';
 
-const Header = ({setShowPopUp, setFilteredTasks, selectedStatus}) => {
+interface HeaderProps {
+  setShowPopUp: React.Dispatch<React.SetStateAction<boolean>>;
+  setFilteredTasks: React.Dispatch<React.SetStateAction<Task[]>>;
+  selectedStatus: string;
+}
+
+const Header: React.FC<HeaderProps> = ({ setShowPopUp, setFilteredTasks, selectedStatus }) => {
   const router = useRouter();
-  const {taskList} = useContext(TaskApi);
+  const context = useContext(TaskApi);
+
+  if (!context) {
+    throw new Error("Header must be used within a TaskApiProvider");
+  }
+
+  const { taskList } = context;
   const [searchTerm, setSearchTerm] = useState("");
 
   const handleLogout = async () => {
@@ -21,22 +33,22 @@ const Header = ({setShowPopUp, setFilteredTasks, selectedStatus}) => {
         handleSuccess(message);
         router.push("/login");
       }
-    } catch (error) {
+    } catch (error: any) {
       if (error.response) {
         handleFailure(error.response.data.error || "Failed to logout");
       } else {
         handleFailure("Network error while logging out");
-      }
+      } 
     }
   }
 
   useEffect(() => {
-
     let filtered = taskList;
 
-    if(selectedStatus !== 'all') {
+    if (selectedStatus !== 'all') {
       filtered = filtered.filter((task) => 
-      task.status.toLowerCase() === selectedStatus.toLowerCase());
+        task.status.toLowerCase() === selectedStatus.toLowerCase()
+      );
     }
 
     if (searchTerm.trim()) {
@@ -47,10 +59,9 @@ const Header = ({setShowPopUp, setFilteredTasks, selectedStatus}) => {
           task.description.toLowerCase().includes(lower)
       );
     }
-      setFilteredTasks(filtered);
+    setFilteredTasks(filtered);
     
-  }, [searchTerm, taskList, selectedStatus]);
-
+  }, [searchTerm, taskList, selectedStatus, setFilteredTasks]);
 
   return (
     <header className="flex items-center justify-between py-4 px-4 md:px-6 bg-white shadow-md">

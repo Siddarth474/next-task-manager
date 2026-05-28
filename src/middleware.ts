@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export const middleware = async (request) => {
-    const token = await request.cookies.get('token')?.value;
+export const middleware = async (request: NextRequest) => {
+    const token = request.cookies.get('token')?.value;
     const url = request.nextUrl;
 
     if(token && (

@@ -2,7 +2,13 @@
 
 import { Loader2Icon, Trash2, X } from "lucide-react";
 
-export default function DeleteConfirmCard({ onConfirm, onCancel, loading }) {
+interface DeleteConfirmCardProps {
+  onConfirm: () => void;
+  onCancel: () => void;
+  loading: boolean;
+}
+
+export default function DeleteConfirmCard({ onConfirm, onCancel, loading }: DeleteConfirmCardProps) {
   return (
     <div className="fixed inset-0 flex items-center justify-center backdrop-blur-xs z-9999">
       <div className="bg-white w-[90%] max-w-sm rounded-2xl shadow-2xl p-6 text-center relative animate-in fade-in zoom-in duration-200">

@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
-import { connectDB } from "@/lib/dbConfig";
+import { NextRequest, NextResponse } from "next/server";
+import { connectDB } from "@/config/dbConfig";
 import { User } from "@/models/userModel";
+import mongoose from "mongoose";
 
-const getGenerateToken = async (userId) => {
+const getGenerateToken = async (userId: string | mongoose.Types.ObjectId) => {
     try {
         const user = await User.findById(userId);
         const token = user.generateToken();
@@ -16,7 +17,7 @@ const getGenerateToken = async (userId) => {
     }
 }
 
-export const POST = async (request) => {
+export const POST = async (request: NextRequest) => {
     try {
         await connectDB();
         const {email, password} = await request.json();
@@ -50,14 +51,14 @@ export const POST = async (request) => {
         const options = {
             httpOnly: true,
             secure: true,
-            sameSite: 'Strict'
+            sameSite: 'strict' as const
         }
 
         response.cookies.set('token', token, options);
 
         return response;
 
-    } catch (error) {
+    } catch (error: any) {
         console.log('Something went wrong! ', error);
         return NextResponse.json(
             {error: error.message}, 

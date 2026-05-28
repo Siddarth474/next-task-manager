@@ -1,28 +1,35 @@
-import React, { useContext, useEffect, useState } from "react";
-import {  CalendarClock, Edit3, Loader2, PlusCircle } from "lucide-react";
+import React, { useContext, useState } from "react";
+import { CalendarClock, Edit3, Loader2, PlusCircle } from "lucide-react";
 import axios from "axios";
 import { handleFailure, handleSuccess } from "@/lib/notification";
 import { TaskApi } from "@/context/TaskContext";
 
+interface TaskFormProps {
+    setShowPopUp: React.Dispatch<React.SetStateAction<boolean>>;
+}
 
-const TaskForm = ({ setShowPopUp }) => {
-    const {setTaskList, task, setTask, editId, setEditId} = useContext(TaskApi);
+const TaskForm: React.FC<TaskFormProps> = ({ setShowPopUp }) => {
+    const context = useContext(TaskApi);
+
+    if (!context) {
+        throw new Error("TaskForm must be used within a TaskApiProvider");
+    }
+
+    const { setTaskList, task, setTask, editId, setEditId } = context;
     const [loading, setLoading] = useState(false);
 
-    const handleChange = (e) => {
-        const {name, value} = e.target;
-        const copyInfo = {...task}
-        copyInfo[name] = value;
-        setTask(copyInfo);
-    }
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setTask((prev) => ({ ...prev, [name]: value }));
+    };
 
     const handleAddTask = async () => {
         try {
-            setLoading(true)
+            setLoading(true);
             const response = await axios.post('/api/tasks', task);
-            const {message, success} = response.data;
+            const { message, success } = response.data;
 
-            if(success) {
+            if (success) {
                 setTaskList((prev) => [response.data.newTask, ...prev]);
                 handleSuccess(message);
                 setTask({
@@ -33,31 +40,29 @@ const TaskForm = ({ setShowPopUp }) => {
                 });
                 setShowPopUp(false);
             }
-            
-        } catch (error) {
-            if(error.response) {
-                setLoading(false);
+        } catch (error: any) {
+            if (error.response) {
                 const data = error.response.data;
                 handleFailure(data.error || "Invalid credentials");
-            }
-            else {
+            } else {
                 console.log('Error in issue submit', error.message);
-                handleFailure("Network error something went wrong" || error.message);
+                handleFailure("Network error something went wrong");
             }
-        } finally{
+        } finally {
             setLoading(false);
         }
-    }
+    };
 
-    const handleEditTask = async (taskId) => {
+    const handleEditTask = async (taskId: string) => {
         try {
+            setLoading(true);
             const res = await axios.patch(`/api/tasks/${taskId}`, task);
-            const {success, message} = res.data;
+            const { success, message } = res.data;
 
             if (success) {
                 setTaskList((prev) =>
-                    prev.map((t) => 
-                        (t._id) === taskId ? { ...t, ...res.data.updatedTask } : t
+                    prev.map((t) =>
+                        (t._id === taskId) ? { ...t, ...res.data.updatedTask } : t
                     )
                 );
                 setShowPopUp(false);
@@ -70,26 +75,28 @@ const TaskForm = ({ setShowPopUp }) => {
                     status: "pending",
                 });
             }
-        } catch (error) {
-            if(error.response) {
+        } catch (error: any) {
+            if (error.response) {
                 const data = error.response.data;
                 handleFailure(data.error);
             }
+        } finally {
+            setLoading(false);
         }
-    }
+    };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if(editId) {
+        if (editId) {
             handleEditTask(editId);
+        } else {
+            handleAddTask();
         }
-        else handleAddTask();
-    }
+    };
 
   return (
     <div>
-        <div className='w-full h-full fixed bg-black opacity-40 top-0 left-1/2 transform 4
-        -translate-x-1/2 z-99'></div>
+        <div className='w-full h-full fixed bg-black opacity-40 top-0 left-1/2 transform -translate-x-1/2 z-99'></div>
         <form onSubmit={handleSubmit}
         className="mx-auto w-full max-w-xl text-black p-6 bg-white backdrop-blur rounded-2xl shadow-lg ring-1 ring-slate-200 dark:ring-slate-800 absolute top-0 md:top-[20%] 
         left-1/2 -translate-x-1/2 z-99999">

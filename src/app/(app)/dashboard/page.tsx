@@ -10,8 +10,11 @@ import { BookX } from 'lucide-react'
 import React, { useContext, useEffect, useState } from 'react'
 
 const page = () => {
-
-  const {taskList, setTaskList} = useContext(TaskApi);
+  const context = useContext(TaskApi);
+  if (!context) {
+    throw new Error("Dashboard must be used within a TaskApiProvider");
+  }
+  const { taskList, setTaskList } = context;
   const [showPopUp, setShowPopUp] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [filteredTasks, setFilteredTasks] = useState(taskList);
@@ -27,9 +30,8 @@ const page = () => {
         if(success) {
           setLoading(false);
           setTaskList(tasks);
-          handleSuccess('All tasks fetched');
         }
-      } catch (error) {
+      } catch (error: any) {
         if(error.response) {
           setLoading(false);
           const data = error.response.data;
@@ -37,13 +39,12 @@ const page = () => {
         }
         else {
           console.log('Error in issue submit', error.message);
-          handleFailure("Network error something went wrong" || error.message);
+          handleFailure("Network error something went wrong");
         }
       }
     };
     getTask();
-  }, []);
-
+  }, [setTaskList]);
 
   return (
     <div className='w-full min-h-screen bg-indigo-100 overflow-auto'>
@@ -86,7 +87,7 @@ const page = () => {
             ) : filteredTasks.length > 0 ? (
               <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 items-center 
               place-content-center md:p-5'>
-                {filteredTasks.map((task) => (
+                {filteredTasks.map((task: any) => (
                 <TaskCard
                   key={task._id}
                   taskInfo={task}
